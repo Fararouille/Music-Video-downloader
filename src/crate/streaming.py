@@ -10,6 +10,22 @@ from fastapi.responses import Response, StreamingResponse
 CHUNK_SIZE = 256 * 1024
 
 
+def attachment_header(name: str) -> str:
+    """Build a ``Content-Disposition`` value browsers and Android both understand.
+
+    RFC 6266 wants a quoted ASCII ``filename`` plus an encoded ``filename*``. Browsers prefer
+    the latter, while simpler clients (Android's ``DownloadManager``, some curl builds) only
+    look at the plain one and would otherwise save every file as ``file.<ext>``.
+    """
+    fallback = "".join(
+        ch if ch.isascii() and ch not in '"\\' and ch.isprintable() else "_" for ch in name
+    ).strip()
+    encoded = quote(name)
+    if not any(ch.isalnum() for ch in Path(fallback).stem):
+        fallback = "download" + Path(name).suffix
+    return f"attachment; filename=\"{fallback}\"; filename*=UTF-8''{encoded}"
+
+
 class RangeNotSatisfiable(Exception):
     pass
 
@@ -74,8 +90,7 @@ def file_response(
     size = path.stat().st_size
     headers = {"Accept-Ranges": "bytes", "Cache-Control": cache_control}
     if attachment:
-        name = filename or path.name
-        headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{quote(name)}"
+        headers["Content-Disposition"] = attachment_header(filename or path.name)
 
     try:
         parsed = parse_range(request.headers.get("range"), size)

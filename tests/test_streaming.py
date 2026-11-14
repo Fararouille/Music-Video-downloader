@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from helpers import write_media
 
-from crate.streaming import RangeNotSatisfiable, iter_file, parse_range
+from crate.streaming import RangeNotSatisfiable, attachment_header, iter_file, parse_range
 
 
 def test_missing_range_returns_none() -> None:
@@ -98,7 +98,20 @@ def test_download_attachment_headers(client: TestClient) -> None:
     assert response.status_code == 200
     disposition = response.headers["content-disposition"]
     assert disposition.startswith("attachment;")
-    assert "filename" in disposition
+    assert f'filename="{media["title"]}.{media["ext"]}"' in disposition
+    assert "filename*=UTF-8''" in disposition
+
+
+def test_attachment_header_offers_ascii_fallback() -> None:
+    header = attachment_header("Sigur Rós – Hoppípolla.mp3")
+
+    assert header.startswith('attachment; filename="Sigur R_s _ Hopp_polla.mp3"')
+    assert header.isascii()  # both parameters are wire-safe
+    assert "filename*=UTF-8''Sigur%20R%C3%B3s%20%E2%80%93%20Hopp%C3%ADpolla.mp3" in header
+
+
+def test_attachment_header_keeps_extension_when_name_is_not_ascii() -> None:
+    assert 'filename="download.mp3"' in attachment_header("曲.mp3")
 
 
 def test_stream_missing_file_returns_410(client: TestClient, populated) -> None:

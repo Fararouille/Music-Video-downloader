@@ -18,6 +18,15 @@ library/
 frontend/node_modules/
 frontend/dist/
 
+# Android
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+*.apk
+*.aab
+*.keystore
+
 # Editor / OS
 .vscode/
 .idea/

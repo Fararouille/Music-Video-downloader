@@ -101,6 +101,30 @@ server trades it for an HttpOnly session cookie; API clients can also send
 > trusted home LAN. On shared or untrusted networks, put `crate` behind a TLS reverse proxy
 > (Caddy, Tailscale Serve, nginx) and set `CRATE_SECURE_COOKIES=1`.
 
+## Android app
+
+Phones cannot install the web app as a PWA over plain HTTP, because a LAN address is not a
+secure context. For that case there is a small Android shell in [`android/`](android/).
+
+Grab the APK from the [latest release](https://github.com/Fararouille/Music-Video-downloader/releases/latest),
+open it on the phone, and allow installs from your browser or file manager when Android asks.
+The app needs Android 8.0 or newer.
+
+On first launch it asks for the server address, for example:
+
+```
+http://192.168.1.42:8000
+```
+
+After that it loads the normal `crate` web interface, so the token login works exactly as it
+does in a browser. Press Back from the library to change the address later.
+
+The app is a WebView shell, not a second implementation: the library, the download queue, and
+all media stay on your server, so playback needs the server to be reachable. Files you save
+from the library go to `Downloads/crate` through Android's download manager. Builds from the
+release workflow are debug APKs signed with the standard debug key — fine for personal use,
+but not something you can publish to the Play Store as-is.
+
 ## Docker
 
 ```bash
@@ -217,7 +241,7 @@ curl -X POST http://127.0.0.1:8000/api/downloads \
 ## Tests and quality
 
 ```bash
-pytest                          # 103 backend tests
+pytest                          # 105 backend tests
 ruff check src tests scripts
 ruff format --check src tests scripts
 python scripts/e2e_download.py  # real download + streaming check
@@ -237,6 +261,9 @@ internet access is required.
 
 Not covered by automated tests: a live download from YouTube in CI (network-dependent,
 and site behavior changes independently of this code), and real-device browser testing.
+
+The Android shell is built separately by the `Android APK` workflow, which runs on tags
+matching `v*` and attaches the resulting debug APK to the release.
 
 ## Limits and non-goals
 

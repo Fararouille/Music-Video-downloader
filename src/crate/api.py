@@ -4,7 +4,6 @@ import hmac
 from contextlib import asynccontextmanager
 from importlib.metadata import PackageNotFoundError, version
 from typing import Literal
-from urllib.parse import quote
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import FileResponse, JSONResponse
@@ -18,7 +17,7 @@ from .db import Store
 from .downloader import AUDIO_QUALITIES, VIDEO_QUALITIES, Downloader
 from .jobs import JobManager
 from .library import Library
-from .streaming import file_response
+from .streaming import attachment_header, file_response
 
 SESSION_AGE = 60 * 60 * 24 * 30
 
@@ -340,7 +339,7 @@ def create_app(settings: Settings | None = None, *, start_worker: bool = True) -
         return Response(
             body,
             media_type="audio/x-mpegurl",
-            headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(filename)}"},
+            headers={"Content-Disposition": attachment_header(filename)},
         )
 
     # -------------------------------------------------------------- downloads

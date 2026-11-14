@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.Crate" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/crate_background</item>
+        <item name="android:statusBarColor">@color/crate_background</item>
+        <item name="android:navigationBarColor">@color/crate_background</item>
+        <item name="android:colorAccent">#8b5cf6</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>
